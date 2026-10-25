@@ -1,0 +1,9 @@
+{
+  "tcp_checks": [
+    {
+      "name": "Example HTTPS service",
+      "host": "example.com",
+      "port": 443
+    }
+  ]
+}
