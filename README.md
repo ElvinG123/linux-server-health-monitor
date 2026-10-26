@@ -2,7 +2,7 @@
 
 A small, dependency-free Python utility for collecting a health snapshot from a Linux server. It reports basic host resources, Linux network interface state, and TCP reachability for endpoints you explicitly list in a JSON config file. It appends each snapshot to a local JSON Lines history file.
 
-This is a portfolio project for demonstrating Linux command-line familiarity, Python scripting, basic monitoring, network troubleshooting, and readable operational documentation. It does not scan networks or discover devices.
+This is a project for demonstrating Linux command-line familiarity, Python scripting, basic monitoring, network troubleshooting, and readable operational documentation. It does not scan networks or discover devices.
 
 ## What it checks
 
@@ -74,18 +74,3 @@ python3 healthcheck.py --config config.json --no-log
 The default report is designed for a quick terminal check. Every run also appends one JSON object per line to `data/health_history.jsonl`. The `data/` directory is ignored by Git so machine-specific history is not committed.
 
 The overall status is `WARN` when a configured TCP check fails or when no non-loopback interface reports `up`. A failed check only means that the target did not accept a TCP connection during that attempt; firewall policy, service state, routing, DNS, and temporary packet loss can all affect the result.
-
-## Suggested portfolio improvements
-
-For a polished GitHub project, add a short README screenshot of a sample run, describe what each check can and cannot tell you, and include a sample JSONL record with any real hostnames or addresses removed. Keep the config file free of production hostnames, IPs, credentials, and customer details.
-
-## Resume wording
-
-After you have run the project and understand how it works, you can list it under **Projects**:
-
-**Linux Server Health Monitor** | Python, Linux
-
-- Built a dependency-free Python utility that records Linux host health, including memory, disk, uptime, load average, and network interface state.
-- Added configurable TCP connectivity checks with latency reporting and JSONL history for reviewing repeated results.
-
-Be ready to explain how `/proc` and `/sys` provide Linux system information, how the TCP check works, and what a failed connection does and does not prove. Do not claim production deployment or customer use; this project is a personal lab tool.
