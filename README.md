@@ -1,76 +1,80 @@
 # Linux Server Health Monitor
 
-A small, dependency-free Python utility for collecting a health snapshot from a Linux server. It reports basic host resources, Linux network interface state, and TCP reachability for endpoints you explicitly list in a JSON config file. It appends each snapshot to a local JSON Lines history file.
+A small Python command-line tool that records basic health information for a Linux host and checks TCP connectivity to configured endpoints. Each run prints a summary and can append a record to a local history file.
 
-This is a project for demonstrating Linux command-line familiarity, Python scripting, basic monitoring, network troubleshooting, and readable operational documentation. It does not scan networks or discover devices.
+## Checks
 
-## What it checks
+- Hostname and collection time in UTC
+- Uptime and memory usage from `/proc`
+- System load average and root filesystem usage
+- Non-loopback network interface state from `/sys`
+- TCP connection status and connection time for configured host and port pairs
 
-- Hostname and UTC collection time
-- System uptime, load average, and memory usage from Linux `/proc`
-- Root filesystem usage
-- Non-loopback interface operational state from Linux sysfs
-- TCP connectivity and connection time for configured host and port pairs
-- Human-readable terminal summary or structured JSON output
-- Append-only JSONL history for later review
+The script uses only the Python standard library.
 
 ## Requirements
 
-- Linux
 - Python 3.10 or newer
-- No third-party Python packages
+- Linux for the full system report
+
+On macOS, disk usage, load average, and TCP checks may work, but Linux-specific uptime, memory, and interface data will show as unavailable.
 
 ## Quick start
 
+From the project directory:
+
 ```bash
-cd linux-server-health-monitor
 cp config.example.json config.json
 python3 healthcheck.py --config config.json
 ```
 
-Edit `config.json` and replace the example endpoint with a service you are authorized to check, such as a server or management endpoint assigned to you. Each check makes one TCP connection attempt to the exact configured host and port.
+The example configuration checks `example.com` on port `443`. Edit `config.json` to use endpoints you own or are authorized to check. The script attempts a TCP connection only to each configured host and port; it does not discover or scan devices.
 
 Example configuration:
 
 ```json
 {
   "tcp_checks": [
-    {"name": "Management service", "host": "192.0.2.20", "port": 443},
-    {"name": "SSH service", "host": "192.0.2.21", "port": 22}
+    {
+      "name": "Management service",
+      "host": "192.0.2.20",
+      "port": 443
+    },
+    {
+      "name": "SSH service",
+      "host": "192.0.2.21",
+      "port": 22
+    }
   ]
 }
 ```
 
-The addresses above are documentation-only examples; replace them with endpoints you are authorized to check.
+The addresses above are documentation examples. Replace them with authorized endpoints.
 
-## Run continuously
+## Repeated checks
 
-Take one snapshot every 60 seconds, up to 10 times:
+Take ten snapshots, ten seconds apart:
 
 ```bash
-python3 healthcheck.py --config config.json --interval 60 --count 10
+python3 healthcheck.py --config config.json --interval 10 --count 10
 ```
 
-Run until stopped with `Ctrl+C`:
+Run every 60 seconds until stopped with `Ctrl+C`:
 
 ```bash
 python3 healthcheck.py --config config.json --interval 60
 ```
 
-Print structured JSON and choose a separate history file:
+Print JSON instead of the terminal summary:
 
 ```bash
-python3 healthcheck.py --config config.json --json --output data/demo.jsonl
-```
-
-Print without writing history:
-
-```bash
-python3 healthcheck.py --config config.json --no-log
+python3 healthcheck.py --config config.json --json --no-log
 ```
 
 ## Output
 
-The default report is designed for a quick terminal check. Every run also appends one JSON object per line to `data/health_history.jsonl`. The `data/` directory is ignored by Git so machine-specific history is not committed.
+By default, each snapshot is appended to `data/health_history.jsonl`, with one JSON object per line. Use `--no-log` to skip saving history or `--output path/to/file.jsonl` to choose another path.
 
-The overall status is `WARN` when a configured TCP check fails or when no non-loopback interface reports `up`. A failed check only means that the target did not accept a TCP connection during that attempt; firewall policy, service state, routing, DNS, and temporary packet loss can all affect the result.
+The overall status is `WARN` if a configured TCP connection fails or all detected non-loopback interfaces are down. A failed TCP check means the connection could not be established during that attempt; it does not identify the cause or confirm whether an application is healthy.
+
+`config.json` and files under `data/` are excluded from Git so local settings and results are not committed.
